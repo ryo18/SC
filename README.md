@@ -1,2 +1,2 @@
-# SM
+# SC
 learning smart contract
