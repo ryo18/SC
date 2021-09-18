@@ -1,0 +1,2 @@
+# SM
+learning smart contract
